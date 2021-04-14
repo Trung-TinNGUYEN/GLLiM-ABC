@@ -1,7 +1,11 @@
 # GLLiM-ABC
 
-This repository contains all numerical experiments from "Approximate Bayesian computation with surrogate posteriors" https://hal.archives-ouvertes.fr/hal-03139256.
+This repository contains all numerical experiments (R code) for "Approximate Bayesian computation with surrogate posteriors".
 
+## Article
+[hal](https://hal.archives-ouvertes.fr/hal-03139256): Approximate Bayesian computation with surrogate posteriors
+
+## How to use
 1) Rfunctions directory:
 The whole set of R functions to implement the GLLiM-ABC procedures are gathered in the Rfunctions directory: one file per function.
 
