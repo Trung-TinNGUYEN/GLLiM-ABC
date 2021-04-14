@@ -3,7 +3,7 @@
 This repository contains all numerical experiments (R code) for "Approximate Bayesian computation with surrogate posteriors".
 
 ## Article
-[hal](https://hal.archives-ouvertes.fr/hal-03139256): Approximate Bayesian computation with surrogate posteriors
+[HAL](https://hal.archives-ouvertes.fr/hal-03139256): Approximate Bayesian computation with surrogate posteriors
 
 ## How to use
 1) Rfunctions directory:
