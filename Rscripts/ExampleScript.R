@@ -2,6 +2,9 @@
 ####
 #### GLLiM+ABC 
 #### 
+#### F. Forbes 
+#### Update April 29, 2021: Faster L2 & MW2 computation with PreCompDistIsoPar
+#### (illustrated on the MA(2) example)
 ##############################################################################################
 
 
@@ -164,14 +167,19 @@ system.time(distMW2L2SMA1<- foreach (i=1:M, .combine=cbind) %dopar% {
 #user   system  elapsed 
 #3027.860   61.114  437.567 --> 7.3 minutes
 
-# Comparison without dopar 
+# Comparison without dopar no core used
 system.time(distMW2L2SMA1test<-
   ComputeDistL1Iso(modgllimSMA1,t(ytargetSMA1),ysimu2SMA1,Wthresh)
 )
 #user   system  elapsed 
 #1184.802  237.887 1424.786 ---> 23 min
 
-
+# Comparison with accelerated version and dopar
+system.time(distMW2L2SMA1test<-
+              PreCompDistL1IsoPar(modgllimSMA1,t(ytargetSMA1),ysimu2SMA1,Wthresh)
+)
+#user   system  elapsed 
+#1986.699  554.566  367.248 ---> 6 min (vs 7 a bit faster)
 
 ### Step 4: ABC scheme, default rejection ABC using distance quantiles
 #################################################################################################
@@ -336,6 +344,8 @@ system.time(distMW2L2SMA2marg12<- foreach (i=1:M, .combine=cbind) %dopar% {
 #user  system elapsed 
 #15663.188   266.815  2158.846 ---> 36 min
 
+
+
 save(list = c("distMW2L2SMA2marg12"), file = "distSMA2marg12K80.RData")
 
 ############################
@@ -462,11 +472,14 @@ v
 
 ############################################################################
 #
-######## 2) compute distances between full post: about 10 hours  for M=10^5!!!!
+######## 2) compute distances between full post: 
+# With Compute1DistISo and foreach : about 10 hours  for M=10^5!!!!
+# With PreCompDistIsoPar and foreach: about 2,5 hours (with 8 cores)
 #
 ### Possibility to reduce the mixtures before computing distances to save time
 #Wthresh<-0.001
-# First test with M=10^4
+
+# First Speed test with M=10^4
 system.time(distMW2L2SMA2M104v1<- foreach (i=1:M, .combine=cbind) %dopar% {
   Compute1DistIso(modgllimSMA2,t(ytargetSMA2),matrix(ysimu2SMA2[,i]),wthr = 0.001)
 })
@@ -483,8 +496,27 @@ system.time(distMW2L2SMA2<- foreach (i=1:M, .combine=cbind) %dopar% {
 #user     system    elapsed 
 #268552.615    861.171  34733.420 --> 9.64 hours
 
-# all 10^5 distances
+# all 10^5 distances SAVED
 save(list = c("distMW2L2SMA2"), file = "distSMA2K80.RData")
+
+#Acceleration TEST : first attempt 
+# test avec M<-10^5
+# Comparison without dopar and accelerated  computation with Pre computation
+system.time(distMW2L2SMA2test<-
+              ComputeDistIsoG(modgllimSMA2,t(ytargetSMA2),ysimu2SMA2[,1:M],Wthresh)
+)
+#user   system  elapsed 
+#33787.17   801.56 34712.92 --> 9.64 SAME TIME but user time smaller 
+# but the cores are not used
+
+# Second test with other function using cores: FASTER
+system.time(distMW2L2SMA2testbis<-PreCompDistIsoPar(modgllimSMA2,t(ytargetSMA2),ysimu2SMA2[,1:1000],Wthresh)
+             )
+#user  system elapsed 
+#613.461   9.949  90.898 instead of 300s 
+# M=10000
+# 5995.733   93.222  932.139 ---> 15 min instead of 58--> should be 2.5 h for 10^5
+# 
 
 ###########################################################################
 # Plot of Marginal posteriors  but with samples selected from 2D distances 
@@ -857,7 +889,9 @@ save(list = c("distMW2L2ITDmarg12"), file = "distITDmarg12K20.RData")
 
 ############################################################################
 #
-######## 2) compute distances between full post: about 4 hours  for M=10^6
+######## 2) compute distances between full post: 
+# avec Compute1DistIso about 4 hours  for M=10^6
+# USE PreCompDistIsoPar to accelerate
 #
 ### Possibility to reduce the mixtures before computing distances to save time
 #Wthresh<-0.001
@@ -1360,6 +1394,7 @@ abline(v=0.06, lty=2)
 ## Case in the paper 
 ##
 #Wthresh<-0.001
+# USE PreCompDistIsoPar to accelerate
 
 ########### Simulated observation
 # First test with M=1000
@@ -1493,4 +1528,18 @@ lines(density(rejsampleHrealFull$MW2postval[4,], from=0,to=1), xlim=c(0,1), col=
 #
 abline(v=0.06, lty=2)
 
+##### Reconstruction plots to check estimation, reconstruction made with Julia code
+##### for Hapke in Logiciels/Julia2020
 
+## Spurious b-mode for theta= [0.59, 0.42, 0.5, 0.006]
+##Signal is:  0.284254 0.279314 0.247754 0.229027 0.221049 0.223845 0.237490 0.265420
+##  0.313732 0.359426
+## Two other solutions are 
+## Theta= [0.59, 0.42, 0.14, 0.006]
+## 0.343595 0.323993 0.284616 0.276913 0.277209 0.286020 0.304590 0.335094
+## 0.380764 0.421559
+## Theta= [0.59, 0.15, 0.14, 0.006]
+## 0.338851 0.315779 0.275857 0.268493 0.268899 0.277580 0.295785 0.325652
+## 0.365386 0.388834
+
+## plot with ts.plot(cbind(signal1, signal2, etc))
