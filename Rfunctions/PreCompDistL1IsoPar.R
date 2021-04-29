@@ -1,9 +1,15 @@
-ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
+PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
   #################################################################################
-  # Case L = 1 
+  # Case L = 1
   # Compute both the MW2 and L2 distances between the GLLiM posterior for y and 
   # the Gllim posterior forall z in matz 
-  # For faster computation when K is large, the mixture components with very small 
+  # The specificity is to exploit the specific structure of the GLLiM mixtures
+  # to avoid repeating the same computations and accelerate computation using 
+  # cores and foreach package. Requires to run before the following cmd: 
+  # numCores <- detectCores() #numCores = 8
+  # registerDoParallel(numCores)
+  # 
+  # Rem: For faster computation when K is large, the mixture components with very small 
   # weights can be removed as they are unlikely to impact the distance values
   #################################################################################
   ### Input:
@@ -14,7 +20,7 @@ ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
   ### Output: a list with the MW2 and L2 distance values
   #################################################################################
   
-  L=1
+  
   #### step1 : compute posteriors parameters for y and z (mixtures)
   # notational shortcut: gllim direct parameters
   modeleg<-modg$mod
@@ -26,15 +32,19 @@ ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
   covstara<-modg$covstar
   invGammaa<-modg$invGamma
   
-  # compute inverse model for y and z : a D x 2 matrix
+  L<-1
+  
+  
+  # compute inverse model for y and z : a D x M+1 matrix
   matyz<-cbind(y,matz)
   # xllim inverse model
   postweightyz<-gllim_inverse_map(matyz,modeleg)$alpha
-  dimMplus1<-dim(postweightyz)[1]
+  dimMplus1<-dim(postweightyz)[1] #M+1
   
   Piy=t(postweightyz)[,1]
   Kdim<-length(Piy)
   leftky<-seq(1,Kdim)[Piy>wthr]
+  # dimay: number of Gaussians whose weight is above the threshold
   dimay<-sum(Piy>wthr)
   Piy<-Piy[Piy>wthr]
   
@@ -42,6 +52,21 @@ ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
   postmeany<-matrix(0,L,dimay)
   
   postcovy[,,1:dimay]=covstara[,,leftky]
+  
+  # Pre-computation (faster when L=1) of the trace part in the Wassertein distance, does not
+  # depend on z or y and could even be pre-computed out of the function like
+  # covstara (todo)
+  # if computed here depends on y only via leftky 
+  # tracecost is leftky x K 
+  tracecost<-matrix(0,dimay,Kdim)
+  for (ii in 1:dimay) {
+    sigma1<-postcovy[,,ii]
+    for (jj in 1:Kdim){
+      sigma2<-covstara[,,jj]
+      tracecost[ii,jj] <-  sigma1+sigma2 - 2*sqrt(sigma1*sigma2)
+    }
+  }
+  #
   
   Asybs<-NULL
   for (k in leftky){
@@ -63,10 +88,28 @@ ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
     dimay<-2
   } 
   
+  #
+  # Pre computation of the first quadratic form (dep on y) in the L2 distance
+  # could be improved probably (todo)
+  # L=1
+  gramy <- matrix(NA,nrow=dimay,ncol=dimay) # symmetic
+  for (ii in 1:dimay) {
+    for (jj in ii:dimay) {
+      gramy[ii,jj] <- L2scal2normalL1(postmeany[,ii],
+                                    postmeany[,jj],
+                                    postcovy[,,ii],
+                                    postcovy[,,jj]);
+      gramy[jj,ii] <- gramy[ii,jj]
+    }
+  }
+  qgramy<-quad.form(gramy,Piy)
+  
+  
   ### for all other z 
   listdist<-NULL
-  
-  for (ny in 2:dimMplus1){
+  # foreach is used to use the cores of the computer
+  listdist<- foreach (ny = 2:dimMplus1, .combine=cbind) %dopar% {
+    
     Piz=t(postweightyz)[,ny]
     leftkz<-seq(1,Kdim)[Piz>wthr]
     dimaz<-sum(Piz>wthr)
@@ -98,10 +141,14 @@ ComputeDistL1Iso<-function(modg,y,matz,wthr=0){
     mixy<-list("Mu"=postmeany, "S"=postcovy, "Pi"=Piy)
     mixz<-list("Mu"=postmeanz, "S"=postcovz, "Pi"=Piz)
     
-    MW2dist <- was2mixL1(mixy,mixz)
-    L2dist <- L2normalL1(mixy,mixz)
+    # tracecost has to be reduced to leftky x leftkz before the call
+    #tracecostz<-matrix(0,dimay,dimaz)
+    tracecostz<-tracecost[,leftkz]
     
-    listdist<-cbind(listdist, c(MW2dist,L2dist)) 
+    # no need to make a special L=1 case for Wasserstein, negligeable gain
+    MW2dist <- was2mixPreComp(mixy,mixz,tracecostz)
+    L2dist <- L2normalPreCompL1(mixy,mixz,qgramy)
+    
+    c(MW2dist,L2dist) 
   }
-return(listdist)
 }
