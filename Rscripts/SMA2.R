@@ -62,12 +62,14 @@ LikeSMA2R<-function(theta,yobsR,R){
   # to account for the prior here the triangle
   if ((theta1<=-2) | (theta1>=2) | ((theta1+theta2)<=-1) | ((theta1-theta2) >=1))
     # attention delta = mode not mean
-    return(0) else{ 
+    likeR<-0 else{ 
       likeR<-1
       for(r in 1:R){
-      likeR<-LikeR * dmvnorm(yobsR[(1+ny*(r-1)):(r*ny)],rep(0,ny),Sigmat)
-       }
-}}
+      likeR<-likeR * dmvnorm(yobsR[(1+ny*(r-1)):(r*ny)],rep(0,ny),Sigmat)
+      }
+    } 
+  likeR
+}
 
 ########################################################
 # Numerical computation of the true posterior for a SMA2 model
@@ -158,25 +160,27 @@ PostPdfSMA2R<-function(thetaseq1,thetaseq2, yR,R){
   # numerical normalisation for plot of the true marginal posterior
   # unormalized for the joint post
   
-  thetaN<-length(thetaseq1)
+  thetaN1<-length(thetaseq1)
+  thetaN2<-length(thetaseq2)
   # unormalized posterior: Likelihood x triangle prior on a grid 
   grid <- expand.grid(x1 = thetaseq1, x2 = thetaseq2)
   z <- apply(grid,1, LikeSMA2R, yobs=yR, R=R)*10^10
   
   ## Marginal posteriors
-  Like1<-rep(0,thetaN)
-  Like2<-rep(0,thetaN)
-  for(i in 1:thetaN){
+  Like1<-rep(0,thetaN1)
+  Like2<-rep(0,thetaN2)
+  for(i in 1:thetaN1){
     Liketemp1<-NULL
-    Liketemp2<-NULL
-    for(j in 0:(thetaN-1)){
-      Liketemp1<-c(Liketemp1,z[i+j*thetaN])
-      Liketemp2<-c(Liketemp2,z[(j+1)+(i-1)*thetaN])
+    # Liketemp2<-NULL
+    for(j in 0:(thetaN2-1)){
+      Liketemp1<-c(Liketemp1,z[i+j*thetaN1])
+      # Liketemp2<-c(Liketemp2,z[(j+1)+(i-1)*thetaN])
+      Like2[j+1]<-integrate.xy(thetaseq1, z[(1+j*thetaN1):((j+1)*thetaN1)])
     }
-    normc1<-integrate.xy(thetaseq2, Liketemp1)
-    Like1[i]<-normc1
-    normc2<-integrate.xy(thetaseq1, Liketemp2)
-    Like2[i]<-normc2
+    Like1[i]<-integrate.xy(thetaseq2, Liketemp1)
+    # Like1[i]<-normc1
+    # normc2<-integrate.xy(thetaseq1, Liketemp2)
+    # Like2[i]<-normc2
   }
   margpdf1<-Like1/(integrate.xy(thetaseq1, Like1))
   margpdf2<-Like2/(integrate.xy(thetaseq2, Like2))
@@ -187,7 +191,8 @@ PostPdfSMA2R<-function(thetaseq1,thetaseq2, yR,R){
   list("marg1"=margpdf1,"marg2"=margpdf2,"postdf"= full_df)
 }
 
-
+# Ex of use
+#postpdfSMA2R<-PostPdfSMA2R(thetaseq1,thetaseq2, ytargetR10SMA2, 10)
 
 ########################################################################
 ## target observation D=10 for true theta1=0.7 and theta2=0.5
@@ -195,7 +200,7 @@ ytargetSMA2<-SMA2(c(0.7,0.5),ny=10)
 
 ## iid case R=10
 ytargetSMA2R10<-NULL
-for(r in 1:10){ytargetSMA2R<-c(ytargetSMA2R,SMA2(c(0.7,0.5), 10))}
+for(r in 1:10){ytargetSMA2R10<-c(ytargetSMA2R10,SMA2(c(0.7,0.5), 10))}
 
 ########################################################################
 # Simulation of a first training set for ABC and GLLIM 

@@ -2,7 +2,7 @@ ComputeCovstarRdetVIso<-function(modg,R){
 ##################################################################################
 # Auxiliary function that goes with Compute1DistMarginIID, to compute the Sigmak*
 # and log det Vk in the iid case. These quantites are independent  of y
-# Remark: could be included in a new GllimFitIID ...
+# Remark: also included in a new GllimFitIID ...
 ##################################################################################
 ### Input:
 # - modg is the result of GllimFit
@@ -15,6 +15,7 @@ ComputeCovstarRdetVIso<-function(modg,R){
   Aa<-modeleg$A
   L<-dim(Aa)[2]
   D<-dim(Aa)[1]
+  K<-dim(Aa)[3]
   Sigmaa<-modeleg$Sigma
   Gammaa<-modeleg$Gamma
   invGammaa<-modg$invGamma
@@ -23,7 +24,8 @@ ComputeCovstarRdetVIso<-function(modg,R){
   covstarRa<-invGammaa
   logdetVa<-NULL
   for (k in 1:K){
-    covstarRa[,,k]=chol2inv(chol(invGammaa[,,k]+ R*t(Aa[,,k])%*%Aa[,,k]/Sigmaa[1,1,k]))
+    #covstarRa[,,k]=chol2inv(chol(invGammaa[,,k]+ R*t(Aa[,,k])%*%Aa[,,k]/Sigmaa[1,1,k]))
+    covstarRa[,,k]=Sigmaa[1,1,k]*chol2inv(chol(Sigmaa[1,1,k]*invGammaa[,,k]+ R*t(Aa[,,k])%*%Aa[,,k]))
     
     logdetVa<-c(logdetVa, R*D*log(Sigmaa[1,1,k])+log(det(diag(L)+R*t(Aa[,,k])%*%Aa[,,k]%*%Gammaa[,,k]/Sigmaa[1,1,k])))
   }

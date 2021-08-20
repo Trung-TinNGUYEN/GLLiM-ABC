@@ -1,6 +1,6 @@
-PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
+PreCompDistFullPar<-function(modg,y,matz,wthr=0){
   #################################################################################
-  # Case L = 1
+  # Case L >1, full covariance Sigmak
   # Compute both the MW2 and L2 distances between the GLLiM posterior for y and 
   # the Gllim posterior forall z in matz 
   # The specificity is to exploit the specific structure of the GLLiM mixtures
@@ -24,15 +24,21 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
   #### step1 : compute posteriors parameters for y and z (mixtures)
   # notational shortcut: gllim direct parameters
   modeleg<-modg$mod
-  #Gammaa<-modeleg$Gamma
   Aa<-modeleg$A
   Sigmaa<-modeleg$Sigma
   ca<-modeleg$c
   ba<-modeleg$b
+  pia<-modeleg$pi
+  
   covstara<-modg$covstar
   invGammaa<-modg$invGamma
+  invSigmaa<-modg$invSigma
   
-  L<-1
+  # posterior mixture weights from GLLiM IID inverse model
+  D= dim(ba)[1]
+  L=dim(ca)[1]
+  K<-dim(ba)[2]
+  M<-dim(matz)[2]
   
   
   # compute inverse model for y and z : a D x M+1 matrix
@@ -43,41 +49,30 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
   
   Piy=t(postweightyz)[,1]
   Kdim<-length(Piy)
-  leftky<-seq(1,Kdim)[Piy>wthr]
+  # in case of very low weights
+  seuil<-min(wthr,sort(Piy, decreasing=TRUE)[3])
+  leftky<-seq(1,Kdim)[Piy>seuil]
+  #leftky<-seq(1,Kdim)[Piy>wthr]
   # dimay: number of Gaussians whose weight is above the threshold
-  dimay<-sum(Piy>wthr)
-  Piy<-Piy[Piy>wthr]
+  dimay<-sum(Piy>seuil)
+  Piy<-Piy[Piy>seuil]
   
   postcovy<-array(0,c(L,L,dimay))
   postmeany<-matrix(0,L,dimay)
   
   postcovy[,,1:dimay]=covstara[,,leftky]
   
-  # Pre-computation (faster when L=1) of the trace part in the Wassertein distance, does not
-  # depend on z or y and could even be pre-computed out of the function like
-  # covstara (todo)
-  # if computed here depends on y only via leftky 
-  # tracecost is leftky x K 
-  tracecost<-matrix(0,dimay,Kdim)
-  for (ii in 1:dimay) {
-    sigma1<-postcovy[,,ii]
-    for (jj in 1:Kdim){
-      sigma2<-covstara[,,jj]
-      tracecost[ii,jj] <-  sigma1+sigma2 - 2*sqrt(sigma1*sigma2)
-    }
-  }
-  #
-  
   Asybs<-NULL
   for (k in leftky){
-    # ISOTROPIC case
-    Asybs<-cbind(Asybs,covstara[,,k]%*%(t(Aa[,,k]/Sigmaa[1,1,k])%*%(matyz[,1]-ba[,k]) +invGammaa[,,k]%*%ca[,k]) )
+    Asybs<-cbind(Asybs,t(t(covstara[,,k]))%*%(t(Aa[,,k])%*%invSigmaa[,,k]%*%(matyz[,1]-ba[,k]) + invGammaa[,,k]%*%t(t(ca[,k]))) )
   }
+    # ISOTROPIC case
+    #Asybs<-cbind(Asybs,covstara[,,k]%*%(t(Aa[,,k]/Sigmaa[1,1,k])%*%(matyz[,1]-ba[,k]) +invGammaa[,,k]%*%ca[,k]) )
   # L x dimay  (y)
   postmeany=Asybs
+  
   # problem with networkflow when K=1
   # to avoid we duplicate the mixture in this case
-  
   if (dimay==1) {
     postmeany<-cbind(postmeany,postmeany)
     temp=array(0,c(L,L,2))
@@ -86,16 +81,42 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
     postcovy<-temp
     Piy=c(0.5,0.5)
     dimay<-2
+    leftky<-c(leftky,leftky)
   } 
+  
+  # Pre-computation of the trace part in the Wassertein distance, does not
+  # depend on z or y and could even be pre-computed out of the function like
+  # covstara (todo)
+  # if computed here depends on y only via leftky 
+  # tracecost is leftky x K 
+  tracecost<-matrix(0,dimay,Kdim)
+  
+  for (ii in 1:dimay) {
+    sigma1<-postcovy[,,ii]
+    for (jj in 1:Kdim){
+      sigma2<-covstara[,,jj]
+      E2 <- eigen(sigma2)
+      V2 <- E2$vectors
+      U2 <- solve(V2)
+      D2 <- diag(E2$values) 
+      sqrt2 <- V2 %*% D2^(1/2) %*% U2
+      E <- eigen(sqrt2 %*%sigma1 %*% sqrt2)
+      V <- E$vectors
+      U <- solve(V)
+      D <- diag(E$values) 
+      sqrtout <- V %*% D^(1/2) %*% U
+      tracecost[ii,jj] <-  sum(diag(sigma1+sigma2 - 2*sqrtout))
+    }
+  }
+  #
   
   #
   # Pre computation of the first quadratic form (dep on y) in the L2 distance
   # could be improved probably (todo)
-  # L=1
   gramy <- matrix(NA,nrow=dimay,ncol=dimay) # symmetic
   for (ii in 1:dimay) {
     for (jj in ii:dimay) {
-      gramy[ii,jj] <- L2scal2normalL1(postmeany[,ii],
+      gramy[ii,jj] <- L2scal2normal(postmeany[,ii],
                                     postmeany[,jj],
                                     postcovy[,,ii],
                                     postcovy[,,jj]);
@@ -111,9 +132,12 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
   listdist<- foreach (ny = 2:dimMplus1, .combine=cbind) %dopar% {
     
     Piz=t(postweightyz)[,ny]
-    leftkz<-seq(1,Kdim)[Piz>wthr]
-    dimaz<-sum(Piz>wthr)
-    Piz<-Piz[Piz>wthr]
+    # in case of very low weights
+    seuil<-min(wthr,sort(Piz, decreasing=TRUE)[3])
+    leftkz<-seq(1,Kdim)[Piz>seuil]
+    #leftkz<-seq(1,Kdim)[Piz>wthr]
+    dimaz<-sum(Piz>seuil)
+    Piz<-Piz[Piz>seuil]
     
     postcovz<-array(0,c(L,L,dimaz))
     postmeanz<-matrix(0,L,dimaz)
@@ -123,10 +147,12 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
     Asybs<-NULL
     for (k in leftkz){
       # ISOTROPIC case
-      Asybs<-cbind(Asybs,covstara[,,k]%*%(t(Aa[,,k]/Sigmaa[1,1,k])%*%(matyz[,ny]-ba[,k]) +invGammaa[,,k]%*%ca[,k]) )
-    }
+      #Asybs<-cbind(Asybs,covstara[,,k]%*%(t(Aa[,,k]/Sigmaa[1,1,k])%*%(matyz[,ny]-ba[,k]) +invGammaa[,,k]%*%ca[,k]) )
+      Asybs<-cbind(Asybs,t(t(covstara[,,k]))%*%(t(Aa[,,k])%*%invSigmaa[,,k]%*%(matyz[,ny]-ba[,k]) + invGammaa[,,k]%*%t(t(ca[,k]))) )
+      }
     # L x dimaz  (y)
     postmeanz=Asybs
+    
     
     if (dimaz==1) {
       postmeanz<-cbind(postmeanz,postmeanz)
@@ -146,9 +172,9 @@ PreCompDistL1IsoPar<-function(modg,y,matz,wthr=0){
     #tracecostz<-matrix(0,dimay,dimaz)
     tracecostz<-tracecost[,leftkz]
     
-    # no need to make a special L=1 case for Wasserstein, negligeable gain
     MW2dist <- was2mixPreComp(mixy,mixz,tracecostz)
-    L2dist <- L2normalPreCompL1(mixy,mixz,qgramy)
+    
+    L2dist <- L2normalPreComp(mixy,mixz,qgramy)
     
     c(MW2dist,L2dist) 
   }

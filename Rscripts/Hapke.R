@@ -3,7 +3,7 @@
 ####  goal:  (see details in the paper)
 ##############################################################################################
 #### Functions specific to this example, to create data sets, computation of the 
-#### true posterior, all saved in a dataHapke.Rdata file at the end
+#### true posterior, all saved in a dataHapke.Rdata file in the end
 #### 
 
 #################################################################################################

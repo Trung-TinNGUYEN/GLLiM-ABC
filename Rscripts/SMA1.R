@@ -70,6 +70,47 @@ return(likevalseq/normc)
 }
 ### Eg Application for the plot : plot(thetaseq,PostPdfSMA1(thetaseq,ytarget))
 
+## Likelihood for R iid observations yR of the SMA(1) 
+## x the prior uniform on the triangle
+## yobsR is of length RD (the R iid vectors are concatanated in one vector)
+LikeSMA1R<-function(theta,yobsR,R){
+  ny=length(yobsR)/R  #D
+  
+  firstrow1<-c(theta^2+1, theta, rep(0,ny-2))
+  Sigmat1<-toeplitz(firstrow1)
+  firstrow2<-c(theta^2+1, -theta, rep(0,ny-2))
+  Sigmat2<-toeplitz(firstrow2)
+  Sigmat<-Sigmat1+Sigmat2
+  # to account for the prior here unif(-2,2)
+  if ((theta< -2) | (theta>2) )
+    # attention delta = mode not mean
+    #likeval<-0 else likeval<-dmvnorm(y,rep(0,ny),Sigmat)
+  likeR<-0 else{ 
+    likeR<-1
+    for(r in 1:R){
+      likeR<-likeR * dmvnorm(yobsR[(1+ny*(r-1)):(r*ny)],rep(0,ny),Sigmat)
+    }
+  } 
+  likeR
+}
+
+# compute the true posterior
+# thetaseq<-seq(-2,2,length=200)
+PostPdfSMA1R<-function(thetaseq, yobsR,R){
+  # numerical normalisation for plot of the true posterior
+  likevalseq=NULL
+  thetaN<-length(thetaseq)
+  #ny=length(y)
+  
+  for(i in 1:thetaN){
+    # likevalseq: unnormalized likelihood (prior Unif(-2,2) x Likelihood)
+    theta<-thetaseq[i]
+    likevalseq<-c(likevalseq, LikeSMA1R(theta,yobsR,R))
+  }
+  normc<-integrate.xy(thetaseq, likevalseq)
+  return(likevalseq/normc)
+}
+
 ##################################################################################
 ## target observation simulated: D=10, thetatrue=1
 ytargetSMA1<-SMA1(1,10)

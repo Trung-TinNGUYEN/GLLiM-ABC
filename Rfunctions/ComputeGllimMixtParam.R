@@ -1,6 +1,7 @@
 ComputeGllimMixtParam<-function(modg,z,wthr=0){
 #################################################################################
 # Case L> 1 
+# This is version is for Isotropic Signmak's
 # Return the parameters of the Gllim posterior for z 
 # For faster computation when K is large, the mixture components with very small 
 # weights can be removed as they are unlikely to impact the distance values
