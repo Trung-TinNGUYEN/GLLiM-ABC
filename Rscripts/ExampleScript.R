@@ -25,6 +25,8 @@ library(expm)
 library(emulator)  # for quadratic forms computation (optional)
 library(sfsmisc) # to normalize true posteriors
 
+library("corpcor")  # for is.positive.definite in xLLiM and GLLiM 
+
 # to use multiple cores
 library(foreach)
 library(doParallel)

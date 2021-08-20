@@ -54,7 +54,7 @@ Compute1DistMarginIIDIso<-function(modg, covstarR,logdetVR,R, y,z,imarg=0,wthr=0
   # added for very small values? 
   #logPiy<-logPiy-min(logPiy)
   #postweightyz<-gllimpredyz$alpha
-  den=logsumexp(logPiy);
+  den=mylogsumexp(logPiy);
   logPiy= logPiy-den 
   Piy=exp(logPiy); 
   leftky<-seq(1,K)[Piy>wthr]
@@ -62,7 +62,7 @@ Compute1DistMarginIIDIso<-function(modg, covstarR,logdetVR,R, y,z,imarg=0,wthr=0
   Piy<-Piy[Piy>wthr]
   #Piy<-Piy/sum(Piy)
   
-  den=logsumexp(logPiz);
+  den=mylogsumexp(logPiz);
   logPiz= logPiz-den
   Piz=exp(logPiz); 
   leftkz<-seq(1,K)[Piz>wthr]
