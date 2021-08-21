@@ -1,5 +1,5 @@
 emgmIID = function(X, init, maxiter=100,verb=0){
-  # unchanged, same as emgm in gLLIM just used to initialize rnk (R)
+  # F. Forbes: unchanged, same as emgm in gLLIM just used to initialize rnk (R)
 # % Perform EM algorithm for fitting the Gaussian mixture model.
 # %   X: d x n data matrix
 # %   init: k (1 x 1) or posteriors (n x k) or center (d x k)

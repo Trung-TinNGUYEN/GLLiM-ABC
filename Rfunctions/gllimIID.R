@@ -10,7 +10,7 @@ gllimIID = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=150,Lw=0,cstr=NULL,verb=
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # %%%% Input %%%%
   # %- t (LtxN)               % Training latent variables
-  # %- y (DxN)                % Training observed variables
+  # %- y (DRxN)                % Training observed variables: the R iid D-dim are stacked
   # DR x N , R iid replications (R=iR but R is already used)
   # iR = number of replications
   # %- in_K (int)             % Initial number of components
@@ -203,7 +203,7 @@ gllimIID = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=150,Lw=0,cstr=NULL,verb=
     sumthSigma= array(0,dim=c(D,D,K));  
     
     # for each replication we can apply the usual gllim and then take the
-    # mean of the eastimated for bk,Sigmak. the ck, Gammak param do not change
+    # mean of the estimations for bk, Sigmak. the ck, Gammak parameters do not change
     # Attention Ak requires some care, also a mean in the end...
     
     # xbar_k and ybar_k can be computed before, they do not vary with the replication
@@ -216,7 +216,7 @@ gllimIID = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=150,Lw=0,cstr=NULL,verb=
       rk=r[,k]; #% 1xN        
       rk_bar[k]=sum(rk); #% 1x1
       yk_bartemp<-0
-      # trick to be improve to deal with case D=1 remove and put in gllimIID1D for now
+      # trick to be improved to deal with case D=1 remove and put in gllimIID1D for now
       #if(D==1){for (iirep in 1:iR){yk_bartemp<-yk_bartemp + rowSums(sweep(t(yappR[,,iirep]),2,rk,"*"))/rk_bar[k]}
       #        }
       #else{

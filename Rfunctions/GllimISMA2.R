@@ -1,10 +1,22 @@
-GllimISMA2<-function(thetaMat, pival, muval, sval,yobs){
-  # compute means, covariance matrix, corellation matrix  of the true posterior of a MA(2)
+GllimISMA2<-function(thetaMat, pival, muval,sval,yobs){
+  # compute means, covariance matrix, correlation matrix  of the true posterior of a MA(2)
   # model when the observation is yobs
   # the computation is made using the unnormalized unormp expression of the 
-  # posterior and by importance sampling using a sample from a  mixture proposal distribution
-  # INPUT
+  # posterior and by importance sampling using a sample from a K-Gaussian
+  # mixture proposal distribution, on the same space as theta
+  #
+  # INPUT: 
+  # the K-Gaussian mixture used as IS proposal is defined by its parameters: 
+  # pival (proportions): vector of length K
+  # muval means: matrix dim of theta x K
+  # sval covariances: array dim theta x dim theta x K
+  # thetaMat: matrix Mdim x dim of theta, theta values used for the monte-carlo sum
+  #
   # OUTPUT
+  # ISpds: normalised importance weights
+  # ISmean, ISvar, IScor: estimations for marginals means, variances and correlations
+  # in the MA2 case
+  #
      Kdim<-length(pival)
       Mdim<-dim(thetaMat)[1]
       

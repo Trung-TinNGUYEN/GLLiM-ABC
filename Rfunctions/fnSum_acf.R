@@ -1,5 +1,6 @@
 fnSum_acf = function(x, Ka){
   # To compute autocovariance eg for a MA(2)  time series
+  # sent by Chris Drovandi
    # x is time series data
    # Ka is number of acf lags
   T = length(x)
