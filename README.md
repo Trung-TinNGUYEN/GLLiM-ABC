@@ -14,7 +14,7 @@ This directory contains one R script for each of the example in the paper. To re
 Then go the ExampleScript.R file and follow the steps there. Note that examples are described in the order of the paper but all in the same file. 
 
 3) data_et_al4examples directory: 
-Alternatively, to save time or to reproduce exactly the paper's results and plots, the data sets and target observations used in the paper have been saved  as R objects in directory data_et_al4examples in .Rdata files with explicit names, eg dataITDdf3.Rdata.
+Alternatively, to save time or to reproduce exactly the paper's results and plots, the data sets and target observations used in the paper have been saved  as R objects in directory data_et_al4examples in .Rdata files with explicit names, e.g. dataMA2.RData, dataBBM.RData.
 
 To reproduce the paper's examples exactly then, go directly to file ExampleScript.R
 and follow the steps there. 
