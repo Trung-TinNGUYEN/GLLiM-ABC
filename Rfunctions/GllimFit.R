@@ -22,16 +22,16 @@ GllimFit<-function(thetadata, ydata, K, constr=list(Sigma="")){
   # %   - Sigma (DxDxK) % Error covariances assumed isotropic here ('i'=iso option)
   # % - invGamma (LxLxK) % inverses of matrices Gammak , do not depend on y or z
   # % - invSigma (D x D x K) % inverses of matrices Sigmak , do not depend on y or z
-  # % -covstar (LxLxK)  % matrices Sigma_k^* covariance matrices of the posterior
-  # %                   % mixtures, do not depend on y or z 
+  # % - covstar (LxLxK)  % matrices Sigma_k^* covariance matrices of the posterior
+  # %                    % mixtures, do not depend on y or z 
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   
   # xllim result 
   resgllim <- gllim(thetadata, ydata, in_K=K,cstr=constr); 
   
-  # pre-computation (to save time) indep on y (or z), 
-  # same covstar and inverse Gamma matrices for all y
+  # pre-computation (to save time) of quantities independent on y (or z), 
+  # same: covstar and inverse Gamma matrices for all y
   
   # notation shortcut
   Gammaa<-resgllim$Gamma
