@@ -1,9 +1,11 @@
-# priv-FF: From May to July 2021, Cleaned up in August 2021
+# FF: From May to July 2021, Cleaned up in August 2021
 
 
 #####################################################################################
 ##
-## 2 Additional examples using GLLiM-IID, added to the previous examples 
+## 2 Additional examples Bivariate Beta and MA(2) models
+## using GLLiM-IID, added to the previous examples in ExampleScript.R 
+## Read ExampleScript.R first, to see what libraries to upload and so on
 ##
 ######################################################################################
 
