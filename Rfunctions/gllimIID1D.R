@@ -73,6 +73,7 @@ gllimIID1D = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=100,Lw=0,cstr=NULL,ver
   # D=1 needs the tranpose not to loose the matrix format
   yapp1<-t(yappR[,,1]) # for emgmIID and init
   
+  
   ExpectationZIID = function(tapp,yapp,yappR,iR,th,verb){
     if(verb>=1) print('  EZ');
     if(verb>=3) print(' k='); 
@@ -83,7 +84,7 @@ gllimIID1D = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=100,Lw=0,cstr=NULL,ver
     L = nrow(th$c)
     Lw=L-Lt;
     
-    # D=1 needs the tranpose not tom loose the matrix format
+    # D=1 needs the tranpose not to loose the matrix format
     yapp1<-t(yappR[,,1]) # for emgmIID and init
     
     logr=matrix(NaN,N,K);
@@ -500,7 +501,6 @@ gllimIID1D = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=100,Lw=0,cstr=NULL,ver
   Lt=nrow(tapp)
   L=Lt+Lw;
   D = nrow(yapp)/iR ; N = ncol(yapp);
-  
   if(verb>=1) {print('EM Initializations');}
   if(!is.null(in_theta)) {
     theta=in_theta;
@@ -626,7 +626,8 @@ gllimIID1D = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=100,Lw=0,cstr=NULL,ver
   if(iter>=3)
   {deltaLL_total=max(LL[1:iter])-min(LL[1:iter]);
   deltaLL=LL[iter]-LL[iter-1];
-  converged=(deltaLL <= (0.001*deltaLL_total));
+  # too large 0.001 ??
+  converged=(deltaLL <= (0.0001*deltaLL_total));
   }       
   
   if(verb>=1) print("");
