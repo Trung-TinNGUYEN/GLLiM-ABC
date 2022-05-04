@@ -174,6 +174,7 @@ gllimIID = function(tapp,yapp,iR,in_K,in_r=NULL,maxiter=150,Lw=0,cstr=NULL,verb=
     # yapp is a DR x N matrix turned into an array yappR (D,N,R)
     if(verb>=1) print('  M'); 
     if(verb>=3) print(' k='); 
+    # rem: when K=1, then r=1 and ncol(r) =NULL
     K = ncol(r);
     D = nrow(yapp)/iR;
     N=ncol(yapp)

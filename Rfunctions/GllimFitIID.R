@@ -40,7 +40,8 @@ GllimFitIID<-function(thetadata, ydata,iR, K, constr=list(Sigma="")){
   # The case D=1 has to be treated separately due to the fact that 1xM matrices are turned into
   # a vector by R.. To be merged into a single function later
   # gllimIID1D not checked, working? 
-
+  
+  
   D=nrow(ydata)/iR
   
   if (D==1) {resgllim <- gllimIID1D(thetadata, ydata,iR, in_K=K,cstr=constr,verb=0)
@@ -63,10 +64,13 @@ GllimFitIID<-function(thetadata, ydata,iR, K, constr=list(Sigma="")){
   # inverse of Gammak and Sigmakstar and its log-determinant 
   for (k in 1:K){
     invGammaa[,,k]<-chol2inv(chol(Gammaa[,,k]))
-    invSigmaa[,,k]<-chol2inv(chol(Sigmaa[,,k]))
+    #invSigmaa[,,k]<-chol2inv(chol(Sigmaa[,,k]))
+    # D=1 case 
+    # invSigmaa[,,k]<-1/Sigmaa[,,k]
     # attention numerical issue when mat non symmetric before inversion
     # no transpose because D=1 make it a vector anyway
-    tempMat<-iR*Aa[,,k]%*%t(Aa[,,k])/invSigmaa[,,k]
+    #bug: tempMat<-iR*Aa[,,k]%*%t(Aa[,,k])/invSigmaa[,,k]
+    tempMat<-iR*Aa[,,k]%*%t(Aa[,,k])/Sigmaa[,,k]
     covstarRa[,,k]=chol2inv(chol(invGammaa[,,k]+tempMat))
     #tempMat<-diag(L)+iR*t(Aa[,,k])%*%invSigmaa[,,k]%*%Aa[,,k]%*%Gammaa[,,k]
     ##covstarRa[,,k]=chol2inv(chol(invGammaa[,,k]+ R*t(Aa[,,k])%*%Aa[,,k]/Sigmaa[1,1,k]))

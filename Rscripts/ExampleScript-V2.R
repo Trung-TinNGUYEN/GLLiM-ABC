@@ -246,7 +246,9 @@ dfSAACF2MA2150 <-data.frame(saabc.ACF2MA2150$post.sample)
 #Plots
 #############
 
-v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-2,2) + ylim(-1,1) +theme(aspect.ratio=.9)
+# run 2 with zoom for new plots
+v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-1,2) + ylim(-0.5,0.75) +theme(aspect.ratio=.9)
+#v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-2,2) + ylim(-1,1) +theme(aspect.ratio=.9)
 v<- v + geom_vline(xintercept=0.6, linetype="dashed", size=.5) + geom_hline(yintercept=0.2, linetype="dashed", size=.5)
 #v<- v +  geom_vline(xintercept=-0.7, linetype="dashed", size=.5)
 v<-v + geom_contour()
@@ -256,7 +258,8 @@ v<- v + xlab("theta1") + ylab("theta2")
 # to get rid of the grey background
 v + theme_bw()
 
-v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-2,2) + ylim(-1,1) +theme(aspect.ratio=.9)
+v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-1,2) + ylim(-0.5,0.75) +theme(aspect.ratio=.9)
+#v <- ggplot(MA2_df, aes(x1, x2, z = z)) + xlim(-2,2) + ylim(-1,1) +theme(aspect.ratio=.9)
 v<- v + geom_vline(xintercept=0.6, linetype="dashed", size=.5) + geom_hline(yintercept=0.2, linetype="dashed", size=.5)
 #v<- v +  geom_vline(xintercept=-0.7, linetype="dashed", size=.5)
 v<-v + geom_contour()
@@ -460,8 +463,9 @@ cor(saabc.ACF2MA2150$post.sample)
  
   rejsampleBBM<-RejABCMW2L2(0.0005,distMW2L2BBMFullK100n100obs1[1,],distMW2L2BBMFullK100n100obs1[2,],bbmparams)
   # K100 n100 Run2
-  # rejsampleBBM<-RejABCMW2L2(0.0005,distMW2L2BBMFullK100n100obs1Run2[1,],distMW2L2BBMFullK100n100obs1Run2[2,],bbmparams)
-  
+  # 
+  system.time(rejsampleBBM<-RejABCMW2L2(0.0005,distMW2L2BBMFullK100n100obs1Run2[1,],distMW2L2BBMFullK100n100obs1Run2[2,],bbmparams) )
+  # 0.008   0.000   0.008 
 
   ################################
   ### compute gllim posterior expectation and log variances in the IID case 
@@ -469,10 +473,10 @@ cor(saabc.ACF2MA2150$post.sample)
   # K100 n 100 
   # 
   system.time(ExpVarMatzBBMFullK100n100<-ExpLogPostVarGllimFullIID(modgllimBBMIIDFullK100n100,bbmdata[1:200,],100) )
-  # 
+  # 2463.345   49.782  365.567 
   # t(t()) to keep the matrix format...
-  ExpVarTargetBBMFullK100n100<-ExpLogPostVarGllimFullIID(modgllimBBMIIDFullK100n100,t(t(bbmobs[1:200,])),100) 
-  #
+  system.time(ExpVarTargetBBMFullK100n100<-ExpLogPostVarGllimFullIID(modgllimBBMIIDFullK100n100,t(t(bbmobs[1:200,])),100) )
+  # 0.056   0.002   0.058 
    L=5
   espysimu2BBMIID<-ExpVarMatzBBMFullK100n100[,1:L]
   # espytarget is 1 x L 
@@ -480,10 +484,11 @@ cor(saabc.ACF2MA2150$post.sample)
   #
   ################################
   ### GLLiM-E-ABC and 
-  rejsampleEBBM <-abc(target=espytargetBBMIID, param=t(bbmparams), sumstat=espysimu2BBMIID, tol=.0005, method ="rejection")
+  system.time(rejsampleEBBM <-abc(target=espytargetBBMIID, param=t(bbmparams), sumstat=espysimu2BBMIID, tol=.0005, method ="rejection") ) 
+  # 0.217   0.057   0.283 
   ### GLLiM-EV-ABC, exp + log var 
-  rejsampleEVBBM <-abc(target=ExpVarTargetBBMFullK100n100, param=t(bbmparams), sumstat=ExpVarMatzBBMFullK100n100, tol=.0005, method ="rejection")
-  
+  system.time(rejsampleEVBBM <-abc(target=ExpVarTargetBBMFullK100n100, param=t(bbmparams), sumstat=ExpVarMatzBBMFullK100n100, tol=.0005, method ="rejection") )
+  #0.402   0.101   0.508 
   
     
   ##################################################################################
