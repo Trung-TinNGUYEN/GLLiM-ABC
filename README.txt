@@ -11,8 +11,12 @@ in the Rfunctions directory: one file per function
 2) Rscripts directory:
   
 This directory contains one R script for each of the example in the paper. To re-run 
-one of this example, eg the ITD example follow the steps in ITD.R. But beware that this 
-will create new data sets and target observation and may not then produce exactly the same results than in the paper. Then go the ExampleScript.R file and follow the steps there. Note that examples are described in the order of the paper but all in the same file. 
+one of this example, first load the required packages listed in file ExampleScript.R. 
+Then, eg for the ITD example follow the steps in ITD.R. But beware that this will 
+create new data sets and target observation and may not then produce exactly the 
+same results than in the paper. Then go back to the ExampleScript.R file and follow the 
+steps there for the required example (eg ITD). Note that examples are described in the
+order of the paper but all in the same file. 
 
 3) data_et_al4examples directory
 Alternatively, to save time or to reproduce exactly the paper's results and plots,
