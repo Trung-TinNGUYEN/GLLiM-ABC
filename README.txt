@@ -17,6 +17,8 @@ that this will create new data sets and target observation and may not then prod
 the same results than in the paper. Then go back to the ExampleScript.R file and follow the steps 
 there describing the ITD example. Note that several examples are described in this file,
 in some order that corresponds to an earlier version of the paper. 
+Examples corresponding to the use of SMC-ABC are described in files ExampleScript-V2.R and 
+ExampleScript-SMC.R (see update below). 
 
 3) data_et_al4examples directory
 Alternatively, to save time or to reproduce exactly the paper's results and plots,
