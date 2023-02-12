@@ -64,7 +64,7 @@ logunpostITDT<-function(yobs, x12, m1, m2, sigmaT, dofT){
   Sigmat=diag(sigmaT,ny)
   if ((x1< -2) | (x1>2) |(x2< -2) | (x2>2) )
     # attention delta = mode not mean
-    return(-Inf) else return(dmvt(yobs, delta=Mut, sigma=Sigmat, df=1, log=T))}
+    return(-Inf) else return(dmvt(yobs, delta=Mut, sigma=Sigmat, df=dofT, log=T))}
 #return(-Inf) else return(dmvt(yobs, mean=Mut, sigma=Sigmat, df=1, log=T))}
 ##################################
 
@@ -97,6 +97,22 @@ PostPdfITD<-function(N_grid, y){
   list("postdf"= full_df)
 }
 
+########################################################################
+## target observation D=10 for true location in (1.5,1)
+# Microphones configuration and default values in the function
+micr1=c(-0.5,0)
+micr2=c(0.5,0)
+# Noise 
+sigmaT=0.01
+dofT=3
+
+ytargetITD<-simuITDT(c(1.5,1), micr1,micr2,sigmaT,dofT,ny=10)
+#ytargetITDtemp<-ytargetITD
+#ytargetITD<-simuITDT(c(1,1), micr1,micr2,sigmaT,dofT,ny=10)
+#ytargetITD<-simuITDT(c(0.6,1), micr1,micr2,sigmaT,dofT,ny=10)
+# output: dim(ytargetITDT) =  1 x 10
+
+
 ## Example of use and  plot to  check
 ## Mics  and source locations (5)
 dfconfig<-data.frame(matrix(c(-0.5,0,0.5,0,1.5,1), 3,2, byrow=T))
@@ -109,20 +125,6 @@ v <- ggplot(ITD_df) +  xlab("x") + ylab("y")+ theme(aspect.ratio = 1)+ xlim(-2, 
 v + geom_contour( aes(x1, x2, z = z), color="blue", bins=7) + geom_abline(slope=0 , intercept=0, linetype="dashed", size=.3) + geom_point(data=dfconfig, mapping=aes(x=X1, y=X2), size=2.5, color="black") 
 
 
-########################################################################
-## target observation D=10 for true location in (1.5,1)
-# Microphones configuration and default values in the function
-micr1=c(-0.5,0)
-micr2=c(0.5,0)
-# Noise 
-sigmaT=0.01
-dofT=3
-
-ytargetITD<-simuITDT(c(1.5,1), micr1,micr2,sigmaT,dofT,ny=10)
-ytargetITDtemp<-ytargetITD
-ytargetITD<-simuITDT(c(1,1), micr1,micr2,sigmaT,dofT,ny=10)
-#ytargetITD<-simuITDT(c(0.6,1), micr1,micr2,sigmaT,dofT,ny=10)
-# output: dim(ytargetITDT) =  1 x 10
 
 ###########################################################################################################
 # Simulation of a first training set for GLLIM 
@@ -169,14 +171,14 @@ system.time(ysimu2ITD<-apply(thetasimu2ITD,2,simuITDT, m1=micr1,m2=micr2,sigmaT=
 # the chain has more trouble exploring oll the branches. 
 
 # For burnin: first run of metrop
-outmetropITDT<-metrop(logunpostITDTmix, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, m1p=micr1p, m2p=micr2p,
+outmetropITDT<-metrop(logunpostITDT, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, 
                       sigmaT=sigmaT,dofT=dofT, scale=1)
 
 # sample after burnin:  nbatch =1000 produces 1000 points but not necessary different due to the rejection scheme
 # to get 1000 different values in the sample, set nspac to a larger value, eg 100 or 1000 (more time consuming)
 # Remark: if nspac=1 or 10 the number of unique values in the sample is likely to be less than 1000
 # 
-outITDT <- metrop(outmetropITDT, nspac=1000, blen = 1, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2,m1p=micr1p, m2p=micr2p, sigmaT=sigmaT, dofT=dofT, scale=1 )
+outITDT <- metrop(outmetropITDT, nspac=1000, blen = 1, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2, sigmaT=sigmaT, dofT=dofT, scale=1 )
 
 ############## The MH generated sample:
 MHvalITD<-outITDT$batch
