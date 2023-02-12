@@ -171,22 +171,15 @@ system.time(ysimu2ITD<-apply(thetasimu2ITD,2,simuITDT, m1=micr1,m2=micr2,sigmaT=
 # the chain has more trouble exploring oll the branches. 
 
 # For burnin: first run of metrop
-<<<<<<< HEAD
-outmetropITDT<-metrop(logunpostITDTmix, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, m1p=micr1p, m2p=micr2p,
-=======
-outmetropITDT<-metrop(logunpostITDT, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, 
->>>>>>> florence
-                      sigmaT=sigmaT,dofT=dofT, scale=1)
+
+outmetropITDT<-metrop(logunpostITDT, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, sigmaT=sigmaT,dofT=dofT, scale=1)
 
 # sample after burnin:  nbatch =1000 produces 1000 points but not necessary different due to the rejection scheme
 # to get 1000 different values in the sample, set nspac to a larger value, eg 100 or 1000 (more time consuming)
 # Remark: if nspac=1 or 10 the number of unique values in the sample is likely to be less than 1000
 # 
-<<<<<<< HEAD
-outITDT <- metrop(outmetropITDT, nspac=1000, blen = 1, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2,m1p=micr1p, m2p=micr2p, sigmaT=sigmaT, dofT=dofT, scale=1 )
-=======
 outITDT <- metrop(outmetropITDT, nspac=1000, blen = 1, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2, sigmaT=sigmaT, dofT=dofT, scale=1 )
->>>>>>> florence
+
 
 ############## The MH generated sample:
 MHvalITD<-outITDT$batch
