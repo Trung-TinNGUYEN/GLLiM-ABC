@@ -161,15 +161,22 @@ system.time(ysimu2ITD<-apply(thetasimu2ITD,2,simuITDT, m1=micr1,m2=micr2,sigmaT=
 #### Metropolis Hasting algorithm
 #### Simulation of a sample of the "true" posterior approximated using a MH algorithm
 ###################################################################################
+# Update February 2023:before that date the metrop function for the MH algorithm was not run correctly. Bug found by 
+# Henrik Häggström: in the metrop function, blen has to be set to 1, which
+# is the default value. Check details in help("metrop")
+# scale maybe changed to 1 too, the higher "scale" the more moving is the chain, to be set
+# in conjunction with nspac to compensate higher rejection. If scale is too small eg 0.1
+# the chain has more trouble exploring oll the branches. 
 
-# burnin
-outmetropITDT<-metrop(logunpostITDT, c(0,0), nbatch=1, blen=10^5, yobs=ytargetITD, m1=micr1, m2=micr2,
-                      sigmaT=sigmaT,dofT=dofT, scale=0.5)
-#outmetropITDT<-metrop(logunpostITDT, c(0,0), nbatch=100000, yobs=ytestITDT, micr1=micr1, micr2=micr2,
-#                     sigman=sigman, scale=0.1)
-# sample after burnin nbatch =500 prduces 500 points here produce 1000, plots have been made with 10^4
-# other blen=250?
-outITDT <- metrop(outmetropITDT, blen = 100, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2, sigmaT=sigmaT, dofT=dofT, scale=0.5 )
+# For burnin: first run of metrop
+outmetropITDT<-metrop(logunpostITDTmix, c(0,0), nbatch=10^5, blen=1, yobs=ytargetITD, m1=micr1, m2=micr2, m1p=micr1p, m2p=micr2p,
+                      sigmaT=sigmaT,dofT=dofT, scale=1)
+
+# sample after burnin:  nbatch =1000 produces 1000 points but not necessary different due to the rejection scheme
+# to get 1000 different values in the sample, set nspac to a larger value, eg 100 or 1000 (more time consuming)
+# Remark: if nspac=1 or 10 the number of unique values in the sample is likely to be less than 1000
+# 
+outITDT <- metrop(outmetropITDT, nspac=1000, blen = 1, nbatch = 1000, yobs=ytargetITD, m1=micr1, m2=micr2,m1p=micr1p, m2p=micr2p, sigmaT=sigmaT, dofT=dofT, scale=1 )
 
 ############## The MH generated sample:
 MHvalITD<-outITDT$batch
